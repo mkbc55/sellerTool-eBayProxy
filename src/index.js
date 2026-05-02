@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit');
 const findingRouter = require('./routes/finding');
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3001;
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
@@ -41,6 +42,6 @@ app.use((err, _req, res, _next) => {
   res.status(status).json({ error: err.message || 'Internal server error' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`eBay proxy listening on port ${PORT}`);
 });
