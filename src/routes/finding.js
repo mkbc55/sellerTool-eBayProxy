@@ -52,7 +52,7 @@ router.get('/category', async (req, res, next) => {
 // GET /api/finding/completed?keywords=sneakers&categoryId=15709&entriesPerPage=20&pageNumber=1
 router.get('/completed', async (req, res, next) => {
   try {
-    const { keywords, categoryId } = req.query;
+    const { keywords, categoryId, conditionId } = req.query;
     if (!keywords && !categoryId) {
       return res.status(400).json({ error: 'keywords or categoryId is required' });
     }
@@ -60,6 +60,13 @@ router.get('/completed', async (req, res, next) => {
     const params = { ...paginationParams(req.query) };
     if (keywords) params['keywords'] = keywords;
     if (categoryId) params['categoryId'] = categoryId;
+
+    params['itemFilter(0).name'] = 'SoldItemsOnly';
+    params['itemFilter(0).value'] = 'true';
+    if (conditionId) {
+      params['itemFilter(1).name'] = 'Condition';
+      params['itemFilter(1).value'] = conditionId;
+    }
 
     const data = await findingRequest('findCompletedItems', params);
     res.json(data);

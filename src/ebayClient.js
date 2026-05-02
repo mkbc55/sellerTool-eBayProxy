@@ -9,7 +9,6 @@ function buildHeaders() {
   return {
     'X-EBAY-SOA-SERVICE-NAME': 'FindingService',
     'X-EBAY-SOA-SERVICE-VERSION': FINDING_API_VERSION,
-    'X-EBAY-SOA-SECURITY-APPNAME': appId,
     'X-EBAY-SOA-RESPONSE-DATA-FORMAT': 'JSON',
     'X-EBAY-SOA-REQUEST-DATA-FORMAT': 'JSON',
   };
@@ -21,6 +20,7 @@ async function findingRequest(operationName, params) {
     params: {
       'OPERATION-NAME': operationName,
       'SERVICE-VERSION': FINDING_API_VERSION,
+      'SECURITY-APPNAME': process.env.EBAY_APP_ID,
       'RESPONSE-DATA-FORMAT': 'JSON',
       ...params,
     },
