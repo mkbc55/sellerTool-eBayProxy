@@ -56,7 +56,7 @@ router.get('/completed', async (req, res, next) => {
     const { keywords, conditionId, entriesPerPage } = req.query;
     if (!keywords) return res.status(400).json({ error: 'keywords query param is required' });
 
-    const url = `https://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findCompletedItems&SERVICE-VERSION=1.0.0&SECURITY-APPNAME=${process.env.EBAY_APP_ID}&RESPONSE-DATA-FORMAT=JSON&keywords=${keywords}&itemFilter(0).name=SoldItemsOnly&itemFilter(0).value=true&itemFilter(1).name=Condition&itemFilter(1).value=${conditionId}&paginationInput.entriesPerPage=${entriesPerPage}&sortOrder=EndTimeSoonest`;
+    const url = `https://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findCompletedItems&SERVICE-VERSION=1.0.0&SECURITY-APPNAME=${process.env.EBAY_APP_ID}&RESPONSE-DATA-FORMAT=JSON&keywords=${encodeURIComponent(keywords)}&itemFilter(0).name=SoldItemsOnly&itemFilter(0).value=true&itemFilter(1).name=Condition&itemFilter(1).value=${encodeURIComponent(conditionId)}&paginationInput.entriesPerPage=${encodeURIComponent(entriesPerPage)}&sortOrder=EndTimeSoonest`;
 
     let response;
     try {
