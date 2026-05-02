@@ -4,6 +4,13 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const findingRouter = require('./routes/finding');
 
+if (!process.env.EBAY_APP_ID) {
+  console.error('FATAL: EBAY_APP_ID environment variable is not set');
+  process.exit(1);
+}
+const maskedAppId = `${process.env.EBAY_APP_ID.slice(0, 6)}...${process.env.EBAY_APP_ID.slice(-4)}`;
+console.log(`eBay App ID loaded: ${maskedAppId}`);
+
 const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3001;
@@ -35,7 +42,10 @@ app.use(rateLimit({
 
 app.use('/api/finding', findingRouter);
 
-app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+app.get('/health', (_req, res) => res.json({
+  status: 'ok',
+  ebayAppId: process.env.EBAY_APP_ID ? maskedAppId : 'MISSING',
+}));
 
 app.use((err, _req, res, _next) => {
   const status = err.status || 500;

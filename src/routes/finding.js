@@ -1,5 +1,4 @@
 const express = require('express');
-const axios = require('axios');
 const { findingRequest } = require('../ebayClient');
 
 const router = express.Router();
@@ -50,25 +49,23 @@ router.get('/category', async (req, res, next) => {
   }
 });
 
-// GET /api/finding/completed?keywords=sneakers&conditionId=3000&entriesPerPage=20
+// GET /api/finding/completed?keywords=sneakers&conditionId=3000&entriesPerPage=5
 router.get('/completed', async (req, res, next) => {
   try {
     const { keywords, conditionId, entriesPerPage } = req.query;
     if (!keywords) return res.status(400).json({ error: 'keywords query param is required' });
+    if (!conditionId) return res.status(400).json({ error: 'conditionId query param is required' });
 
-    const url = `https://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findCompletedItems&SERVICE-VERSION=1.0.0&SECURITY-APPNAME=${process.env.EBAY_APP_ID}&RESPONSE-DATA-FORMAT=JSON&keywords=${encodeURIComponent(keywords)}&itemFilter(0).name=SoldItemsOnly&itemFilter(0).value=true&itemFilter(1).name=Condition&itemFilter(1).value=${encodeURIComponent(conditionId)}&paginationInput.entriesPerPage=${encodeURIComponent(entriesPerPage)}&sortOrder=EndTimeSoonest`;
-
-    let response;
-    try {
-      response = await axios.get(url);
-    } catch (axiosErr) {
-      if (axiosErr.response) {
-        console.error('eBay error response:', axiosErr.response.status, JSON.stringify(axiosErr.response.data));
-      }
-      return res.status(500).json({ error: 'eBay API error' });
-    }
-
-    res.json(response.data);
+    const data = await findingRequest('findCompletedItems', {
+      keywords,
+      'itemFilter(0).name': 'SoldItemsOnly',
+      'itemFilter(0).value': 'true',
+      'itemFilter(1).name': 'Condition',
+      'itemFilter(1).value': conditionId,
+      'paginationInput.entriesPerPage': entriesPerPage,
+      sortOrder: 'EndTimeSoonest',
+    });
+    res.json(data);
   } catch (err) {
     next(err);
   }
