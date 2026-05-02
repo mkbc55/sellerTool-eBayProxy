@@ -1,4 +1,5 @@
 const express = require('express');
+const axios = require('axios');
 const { findingRequest } = require('../ebayClient');
 
 const router = express.Router();
@@ -49,27 +50,25 @@ router.get('/category', async (req, res, next) => {
   }
 });
 
-// GET /api/finding/completed?keywords=sneakers&categoryId=15709&entriesPerPage=20&pageNumber=1
+// GET /api/finding/completed?keywords=sneakers&conditionId=3000&entriesPerPage=20
 router.get('/completed', async (req, res, next) => {
   try {
-    const { keywords, categoryId, conditionId } = req.query;
-    if (!keywords && !categoryId) {
-      return res.status(400).json({ error: 'keywords or categoryId is required' });
+    const { keywords, conditionId, entriesPerPage } = req.query;
+    if (!keywords) return res.status(400).json({ error: 'keywords query param is required' });
+
+    const url = `https://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findCompletedItems&SERVICE-VERSION=1.0.0&SECURITY-APPNAME=${process.env.EBAY_APP_ID}&RESPONSE-DATA-FORMAT=JSON&keywords=${keywords}&itemFilter(0).name=SoldItemsOnly&itemFilter(0).value=true&itemFilter(1).name=Condition&itemFilter(1).value=${conditionId}&paginationInput.entriesPerPage=${entriesPerPage}&sortOrder=EndTimeSoonest`;
+
+    let response;
+    try {
+      response = await axios.get(url);
+    } catch (axiosErr) {
+      if (axiosErr.response) {
+        console.error('eBay error response:', axiosErr.response.status, JSON.stringify(axiosErr.response.data));
+      }
+      return res.status(500).json({ error: 'eBay API error' });
     }
 
-    const params = { ...paginationParams(req.query) };
-    if (keywords) params['keywords'] = keywords;
-    if (categoryId) params['categoryId'] = categoryId;
-
-    params['itemFilter(0).name'] = 'SoldItemsOnly';
-    params['itemFilter(0).value'] = 'true';
-    if (conditionId) {
-      params['itemFilter(1).name'] = 'Condition';
-      params['itemFilter(1).value'] = conditionId;
-    }
-
-    const data = await findingRequest('findCompletedItems', params);
-    res.json(data);
+    res.json(response.data);
   } catch (err) {
     next(err);
   }
